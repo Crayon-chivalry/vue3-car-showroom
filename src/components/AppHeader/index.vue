@@ -4,60 +4,58 @@ import { ref } from "vue";
 import Brand from "./Brand.vue";
 
 // 导航栏主题
-const theme = ref('light');
+const theme = ref("light");
 
 const menuList = [
-  { id: 1, name: "热门车型", popover: true, url: "" },
-  { id: 2, name: "热门品牌", popover: true, url: "" },
-  { id: 3, name: "门店", popover: false, url: "" },
-  { id: 4, name: "售后", popover: false, url: "" },
-  { id: 5, name: "关于我们", popover: false, url: "" },
+  { id: 1, name: "热门车型", url: "", showDrawer: true },
+  { id: 2, name: "热门品牌", url: "", showDrawer: true },
+  { id: 3, name: "门店", url: "", showDrawer: false },
+  { id: 4, name: "售后", url: "", showDrawer: false }, 
+  { id: 5, name: "关于我们", url: "", showDrawer: false }
 ];
 
-// 弹出框的样式
-const popperStyle = {
-  inset: '40px auto auto 0',
-  borderRadius: 0,
-  boxShadow: 'none'
-}
+const showDrawer = ref(false);
 
-// 弹出框显示时的回调
-const onShowPopover = () => {
-  theme.value = 'dark';
-}
+// 鼠标移入事件
+const onMouseenter = (item) => {
+  console.log("鼠标移入", item);
+  if (item.id == 2) {
+    showDrawer.value = true;
+    theme.value = "dark";
+  }
+};
 
-// 弹出框隐藏时的回调
-const onHidePopover = () => {
-  theme.value = 'light';
-}
+// 鼠标移出事件
+const onMouseleave = () => {
+  console.log("鼠标移出");
+  showDrawer.value = false;
+  theme.value = "light";
+};
 </script>
 
 <template>
-  <div class="app-header" :class="{'dark-theme': theme == 'dark'}">
+  <div class="app-header" :class="{ 'dark-theme': theme == 'dark' }">
     <!-- logo -->
     <img src="@/assets/image/logo-white.png" class="logo-image" v-if="theme == 'light'" />
     <img src="@/assets/image/logo-black.png" class="logo-image" v-else />
 
     <!-- 菜单栏 -->
     <div class="menu">
-      <template v-for="item in menuList" :key="item.id">
-        <el-popover
-          placement="bottom"
-          :show-arrow="false"
-          width="100vw"
-          :popper-style="popperStyle"
-          @show="onShowPopover"
-          @hide="onHidePopover"
-          v-if="item.popover"
-        >
-          <template #reference>
-            <div class="menu-item">{{ item.name }}</div>
-          </template>
-          <!-- 热门品牌组件 -->
-          <brand v-if="item.id == 2" />
-        </el-popover>
-        <div class="menu-item" v-else>{{ item.name }}</div>
-      </template>
+      <div
+        class="menu-item"
+        v-for="item in menuList"
+        :key="item.id"
+        @mouseenter="onMouseenter(item)"
+        @mouseleave="onMouseleave"
+      >
+        <span>{{ item.name }}</span>
+        <Transition name="drawer-slide">
+          <div class="drawer" v-if="showDrawer && item.showDrawer">
+            <!-- 热门品牌 -->
+            <brand />
+          </div>
+        </Transition>
+      </div>
     </div>
 
     <!-- 工具栏 -->
@@ -76,7 +74,7 @@ const onHidePopover = () => {
   left: 0;
   right: 0;
   height: 40px;
-  z-index: 9;
+  z-index: 99;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -114,9 +112,32 @@ const onHidePopover = () => {
 .dark-theme {
   color: #000;
   background-color: #fff;
+  z-index: 9999;
 }
 
 .dark-theme .tool-icon {
   color: #000;
+}
+
+.drawer {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  z-index: 8;
+  transform-origin: top; /* 设置变形的原点在顶部 */
+}
+
+/* 弹框动画样式 */
+.drawer-slide-enter-active,
+.drawer-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.drawer-slide-enter-from,
+.drawer-slide-leave-to {
+  transform: scaleY(0);
+  opacity: 0;
 }
 </style>

@@ -13,6 +13,7 @@
 
 <style scoped>
 .brand {
+  padding: 40px 0 60px;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
