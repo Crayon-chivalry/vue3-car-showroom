@@ -1,50 +1,70 @@
 <script setup>
-import { ref } from 'vue'
-import { Search, International } from '@icon-park/vue-next';
+import { ref } from "vue";
 
-import Brand from './Brand.vue'
+import Brand from "./Brand.vue";
+
+// 导航栏主题
+const theme = ref('light');
 
 const menuList = [
-  {id: 1, name: '热门车型', url: ''},
-  {id: 2, name: '热门品牌', url: ''},
-  {id: 3, name: '门店', url: ''},
-  {id: 4, name: '售后', url: ''},
-  {id: 5, name: '关于我们', url: ''},
-]
+  { id: 1, name: "热门车型", popover: true, url: "" },
+  { id: 2, name: "热门品牌", popover: true, url: "" },
+  { id: 3, name: "门店", popover: false, url: "" },
+  { id: 4, name: "售后", popover: false, url: "" },
+  { id: 5, name: "关于我们", popover: false, url: "" },
+];
 
-const showBrand = ref(false)
-
-// 菜单项鼠标移入事件
-const menuMouseenter = (item) => {
-  if(item.id == 2) showBrand.value = true
+// 弹出框的样式
+const popperStyle = {
+  inset: '40px auto auto 0',
+  borderRadius: 0,
+  boxShadow: 'none'
 }
 
-// 菜单项鼠标移出事件
-const menuMouseleave = (item) => {
-  if(item.id == 2) showBrand.value = false
+// 弹出框显示时的回调
+const onShowPopover = () => {
+  theme.value = 'dark';
+}
+
+// 弹出框隐藏时的回调
+const onHidePopover = () => {
+  theme.value = 'light';
 }
 </script>
 
 <template>
-  <div class="app-header">
+  <div class="app-header" :class="{'dark-theme': theme == 'dark'}">
     <!-- logo -->
-    <img src="@/assets/image/logo-white.png" class="logo-image" />
+    <img src="@/assets/image/logo-white.png" class="logo-image" v-if="theme == 'light'" />
+    <img src="@/assets/image/logo-black.png" class="logo-image" v-else />
 
     <!-- 菜单栏 -->
     <div class="menu">
-      <div class="menu-item" v-for="item in menuList" :key="item.id" @mouseenter="menuMouseenter(item)" @mouseleave="menuMouseleave(item)">
-        {{ item.name }}
-      </div>
+      <template v-for="item in menuList" :key="item.id">
+        <el-popover
+          placement="bottom"
+          :show-arrow="false"
+          width="100vw"
+          :popper-style="popperStyle"
+          @show="onShowPopover"
+          @hide="onHidePopover"
+          v-if="item.popover"
+        >
+          <template #reference>
+            <div class="menu-item">{{ item.name }}</div>
+          </template>
+          <!-- 热门品牌组件 -->
+          <brand v-if="item.id == 2" />
+        </el-popover>
+        <div class="menu-item" v-else>{{ item.name }}</div>
+      </template>
     </div>
 
     <!-- 工具栏 -->
     <div class="tool">
-      <search theme="outline" size="21" fill="#fff" class="tool-icon" />
-      <international theme="outline" size="21" fill="#fff" class="tool-icon" />
+      <el-icon size="21" class="tool-icon"><Search /></el-icon>
+      <el-icon size="21" class="tool-icon"><SetUp /></el-icon>
     </div>
-
-    <!-- 热门品牌组件 -->
-    <brand v-model:show="showBrand" />
   </div>
 </template>
 
@@ -55,12 +75,12 @@ const menuMouseleave = (item) => {
   top: 0;
   left: 0;
   right: 0;
-  height: 50px;
+  height: 40px;
   z-index: 9;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* background-color: rgba(255, 255, 255, .4); */
+  color: #fff;
 }
 
 .logo-image {
@@ -72,7 +92,6 @@ const menuMouseleave = (item) => {
   display: flex;
   gap: 20px;
   font-size: 14px;
-  color: #fff;
 }
 
 .menu-item {
@@ -88,6 +107,16 @@ const menuMouseleave = (item) => {
 }
 
 .tool-icon {
+  color: #fff;
   cursor: pointer;
+}
+
+.dark-theme {
+  color: #000;
+  background-color: #fff;
+}
+
+.dark-theme .tool-icon {
+  color: #000;
 }
 </style>
