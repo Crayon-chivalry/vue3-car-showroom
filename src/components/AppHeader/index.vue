@@ -2,9 +2,11 @@
 import { ref } from "vue";
 
 import Brand from "./Brand.vue";
+import HotCars from "./HotCars.vue";
 
 // 导航栏主题
 const theme = ref("light");
+const activeMenuId = ref('')
 
 const menuList = [
   { id: 1, name: "热门车型", url: "", showDrawer: true },
@@ -16,21 +18,31 @@ const menuList = [
 
 const showDrawer = ref(false);
 
-// 鼠标移入事件
+// 菜单栏鼠标移入事件
 const onMouseenter = (item) => {
-  console.log("鼠标移入", item);
-  if (item.id == 2) {
-    showDrawer.value = true;
+  activeMenuId.value = item.id
+  if (item.showDrawer) {
     theme.value = "dark";
+    showDrawer.value = true;
   }
 };
 
-// 鼠标移出事件
-const onMouseleave = () => {
-  console.log("鼠标移出");
-  showDrawer.value = false;
-  theme.value = "light";
+// 菜单栏鼠标移出事件
+const onMouseleave = (item) => {
+  if(item.showDrawer && showDrawer.value) {
+    showDrawer.value = false;
+    theme.value = "light";
+  }
 };
+
+// drawer 弹框鼠标移入事件
+const drawerMouseleave = (e) => {
+  const relatedTarget = e.relatedTarget;
+  if(relatedTarget && relatedTarget.classList.contains('el-overlay')) {
+    showDrawer.value = false
+    theme.value = "light";
+  }
+}
 </script>
 
 <template>
@@ -46,15 +58,22 @@ const onMouseleave = () => {
         v-for="item in menuList"
         :key="item.id"
         @mouseenter="onMouseenter(item)"
-        @mouseleave="onMouseleave"
+        @mouseleave="onMouseleave(item)"
+        
       >
-        <span>{{ item.name }}</span>
-        <Transition name="drawer-slide">
-          <div class="drawer" v-if="showDrawer && item.showDrawer">
-            <!-- 热门品牌 -->
-            <brand />
-          </div>
-        </Transition>
+        <span class="menu-name">{{ item.name }}</span>
+        <!-- 弹框 热门车型/热门品牌 -->
+        <el-drawer 
+          v-model="showDrawer" 
+          direction="ttb" 
+          :with-header="false" 
+          size="auto" 
+          body-class="drawer-body" 
+          @mouseleave="drawerMouseleave"
+          v-if="item.showDrawer && activeMenuId == item.id"
+        >
+          <component :is="activeMenuId == 1 ? HotCars : Brand" />
+        </el-drawer>
       </div>
     </div>
 
@@ -66,7 +85,7 @@ const onMouseleave = () => {
   </div>
 </template>
 
-<style scoped>
+<style scopeds>
 .app-header {
   position: fixed;
   padding: 0 40px;
@@ -79,6 +98,7 @@ const onMouseleave = () => {
   align-items: center;
   justify-content: space-between;
   color: #fff;
+  transition: all .4s;
 }
 
 .logo-image {
@@ -96,6 +116,9 @@ const onMouseleave = () => {
   display: flex;
   align-items: center;
   padding: 0 15px;
+}
+
+.menu-name {
   cursor: pointer;
 }
 
@@ -119,25 +142,11 @@ const onMouseleave = () => {
   color: #000;
 }
 
-.drawer {
-  position: fixed;
+.el-overlay {
   top: 40px;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  z-index: 8;
-  transform-origin: top; /* 设置变形的原点在顶部 */
 }
 
-/* 弹框动画样式 */
-.drawer-slide-enter-active,
-.drawer-slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.drawer-slide-enter-from,
-.drawer-slide-leave-to {
-  transform: scaleY(0);
-  opacity: 0;
+.drawer-body {
+  padding: 0;
 }
 </style>
