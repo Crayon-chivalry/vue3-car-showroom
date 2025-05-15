@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import * as echarts from 'echarts'
 
 import CarsList from './components/carsList.vue'
+import CarsShowroom from './components/CarsShowroom.vue'
 
 const chartRef = ref(null)
 let chartInstance = null
@@ -86,9 +87,9 @@ onMounted(() => {
         <div class="btn">定制和预订</div>
         <div class="btn">试驾</div>
        </div>
-      <!-- 汽车模型 -->
+      <!-- 汽车模型/展示 -->
       <div class="cars-model">
-        <img src="@/assets/image/cars/cars-test.png" style="width: 70%;" />
+        <cars-showroom />
       </div>
       <!-- 基本信息 -->
       <div class="cars-info">
@@ -174,7 +175,6 @@ onMounted(() => {
 
 .cars-model {
   flex: 1;
-  text-align: center;
 }
 
 .cars-info-item {
