@@ -30,20 +30,29 @@ const initScene = () => {
   // 创建渲染器
   renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true
+    // alpha: true
   });
+  // 开启物理光照计算
+  renderer.physicallyCorrectLights = true;
+  // 设置色调映射
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
   renderer.setSize(containerWidth.value, containerHeight.value)
   threeContainer.value.appendChild(renderer.domElement);
 
   // 光照
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  // 调整光照设置
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // 增加环境光强度
   scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
-  // 添加方向光辅助器
-  // const helper = new THREE.DirectionalLightHelper( directionalLight, 5 );
-  // scene.add( helper );
+
+  // 添加多个方向光，改善阴影效果
+  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight1.position.set(5, 5, 5);
+  scene.add(directionalLight1);
+
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+  directionalLight2.position.set(-5, 5, -5);
+  scene.add(directionalLight2);
 
   // 轨道控制器
   controls = new OrbitControls(camera, renderer.domElement)
@@ -58,26 +67,20 @@ const loadModel = () => {
     const carModel = gltf.scene
     carModel.traverse((child) => {
       if(child.name === "OUTSIDE") {
-        child.children[0].material.color.set(0x2db7cb) // 设置车身颜色
-        console.log(child.children[2])
-        // child.children[2].material.color.set(0xe02020) // 设置天窗/车架颜色为黑色
-        child.children[2].material.emissive.set(0x000000) // 材质自发光的颜色， 设置天窗/车架颜色为黑色
-        // child.children[2].material.metalness = 0.9;  // 增加金属感
-        // child.children[2].material.roughness = 0.1;  // 降低粗糙度
-        // child.children[2].material.envMapIntensity = 2.0; // 增强环境反射
+        child.children[0].material.color.set(0x2db7cb)
+        // child.children.forEach(item => item.material.color.set(0x2db7cb))
       }
       if(child.name === 'Wheel1001') {
         child.material.metalness = 0.5;     // 调整金属度
         child.material.roughness = 0.2;     // 调整粗糙度
         child.material.envMapIntensity = 1; // 调整环境反射强度
       }
-      // console.log(child)
+      console.log(child)
     })
 
     carModel.rotation.y = Math.PI
-    carModel.scale.set(3, 3, 3)
+    carModel.scale.set(2, 2, 2)
     scene.add(carModel)
-    // scene.add(carModel.children[6].children[2])
   })
 }
 
