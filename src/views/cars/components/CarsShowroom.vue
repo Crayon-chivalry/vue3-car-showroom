@@ -19,12 +19,12 @@ const initScene = () => {
 
   // 创建相机
   camera = new THREE.PerspectiveCamera(
-    75,
+    35,
     containerWidth.value / containerHeight.value,
     0.1,
     1000
   );
-  camera.position.set(0, 10, 10); // 设置相机位置
+  camera.position.set(20, 3, 0); // 设置相机位置
   camera.lookAt(0, 0, 0); //坐标原点
 
   // 创建渲染器
@@ -32,52 +32,70 @@ const initScene = () => {
     antialias: true,
     alpha: true
   });
+  // 启用物理光照计算
+  renderer.physicallyCorrectLights = true;
+  // 设置色调映射以增强明暗对比
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.5; // 调整曝光度
   renderer.setSize(containerWidth.value, containerHeight.value)
   threeContainer.value.appendChild(renderer.domElement);
 
-  // 光照
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  // 环境光
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
-  // 添加方向光辅助器
-  // const helper = new THREE.DirectionalLightHelper( directionalLight, 5 );
-  // scene.add( helper );
+
+  // 主光源 - 模拟太阳光
+  const mainLight = new THREE.DirectionalLight(0xffffff, 2);
+  mainLight.position.set(0, 10, 0);
+  scene.add(mainLight);
+
+  // 补光 - 增加车身细节
+  const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+  fillLight.position.set(5, 5, -5);
+  scene.add(fillLight);
 
   // 轨道控制器
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
+  controls.dampingFactor = 0.05;
+  // 禁用缩放和平移
+  controls.enableZoom = false;
+  controls.enablePan = false;
+  // 固定垂直角度，禁止垂直旋转
+  controls.minPolarAngle = Math.PI / 2.2; // 固定仰角约60度
+  controls.maxPolarAngle = Math.PI / 2.2; // 与 minPolarAngle 相同，锁定垂直角度
+  // 设置目标点稍微抬高，使旋转中心更合理
+  controls.target.set(0, 0.5, 0);
 }
 
 // 加载模型
 const loadModel = () => {
   const gltfLoader = new GLTFLoader()
-  gltfLoader.load("/src/assets/models/su7/source/SU7.glb", (gltf) => {
-    console.log(gltf)
+  gltfLoader.load("/src/assets/models/su7.glb", (gltf) => {
     const carModel = gltf.scene
+    console.log(carModel)
+    // carModel.traverse((child) => {
+    //   console.log(child)
+    //   if(child.name === 'OUTSIDE_6') {
+    //     child.children[0].material.color.set(0xe02020)
+    //   }
+    // })
+    // carModel.rotation.y = Math.PI
     carModel.traverse((child) => {
-      if(child.name === "OUTSIDE") {
-        child.children[0].material.color.set(0x2db7cb) // 设置车身颜色
-        console.log(child.children[2])
-        // child.children[2].material.color.set(0xe02020) // 设置天窗/车架颜色为黑色
-        child.children[2].material.emissive.set(0x000000) // 材质自发光的颜色， 设置天窗/车架颜色为黑色
-        // child.children[2].material.metalness = 0.9;  // 增加金属感
-        // child.children[2].material.roughness = 0.1;  // 降低粗糙度
-        // child.children[2].material.envMapIntensity = 2.0; // 增强环境反射
+      // 优化材质
+      if(child.material) {
+        // 增强金属感
+        child.material.metalness = 0.4;
+        child.material.roughness = 0.1;
+        // 调整反射
+        child.material.envMapIntensity = 1.5;
+        child.material.needsUpdate = true;
       }
-      if(child.name === 'Wheel1001') {
-        child.material.metalness = 0.5;     // 调整金属度
-        child.material.roughness = 0.2;     // 调整粗糙度
-        child.material.envMapIntensity = 1; // 调整环境反射强度
-      }
-      // console.log(child)
-    })
-
-    carModel.rotation.y = Math.PI
-    carModel.scale.set(3, 3, 3)
+    });
+    carModel.scale.set(4, 4, 4)
+    carModel.position.y = -1
+    carModel.rotation.y = Math.PI * 1.5; // 旋转模型使其朝向正确方向
     scene.add(carModel)
-    // scene.add(carModel.children[6].children[2])
   })
 }
 

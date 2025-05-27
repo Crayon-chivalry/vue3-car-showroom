@@ -1,132 +1,171 @@
+<!-- 更自由 有阴影 等 -->
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { onMounted, ref } from 'vue'
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'; 
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-// 获取 DOM 容器引用
-const threeContainer = ref(null);
+const threeContainer = ref(null)
 
-// 定义 Three.js 核心对象
-let scene, camera, renderer, loader, carModel, controls;
+// 容器尺寸
+const containerWidth = ref(0)
+const containerHeight = ref(0)
 
-// 获取容器尺寸的函数
-const getContainerSize = () => {
-  const container = threeContainer.value;
-  if (!container) return { width: 0, height: 0 };
-  return {
-    width: container.clientWidth,
-    height: container.clientHeight
-  };
-};
+let scene, camera, renderer, controls;
 
 // 初始化 Three.js 场景
 const initScene = () => {
-  // 1. 创建场景（所有3D对象的容器）
+  // 创建场景
   scene = new THREE.Scene();
-  scene.background = null;
 
-  // 2. 创建相机（视角）
-  const { width, height } = getContainerSize();
+  // 创建相机
   camera = new THREE.PerspectiveCamera(
-    75, // 视野角度（FOV）
-    width / height, // 宽高比
-    0.1, // 近裁剪面
-    1000 // 远裁剪面
+    75,
+    containerWidth.value / containerHeight.value,
+    0.1,
+    1000
   );
-  camera.position.set(5, 2, 5); // 设置相机位置 (x, y, z)
-  camera.lookAt(0, 0, 0); // 让相机看向原点
+  camera.position.set(0, 10, 10); // 设置相机位置
+  camera.lookAt(0, 0, 0); //坐标原点
 
-  // 3. 创建渲染器（将3D场景绘制到2D画布）
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setClearColor(0x000000, 0); // 设置清除色为透明
-  renderer.setSize(width, height); // 设置渲染尺寸
-  renderer.shadowMap.enabled = true; // 启用阴影
-
-  // 4. 将渲染器的画布添加到DOM
+  // 创建渲染器
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
+  });
+  // 启用物理光照计算
+  renderer.physicallyCorrectLights = true;
+  // 设置色调映射以增强明暗对比
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.5; // 调整曝光度
+  // 启用阴影
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setSize(containerWidth.value, containerHeight.value)
   threeContainer.value.appendChild(renderer.domElement);
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; // 启用阻尼效果
-  controls.dampingFactor = 0.05; // 设置阻尼系数
-  controls.screenSpacePanning = true; // 启用平移
-  controls.minDistance = 3; // 最小缩放距离
-  controls.maxDistance = 10; // 最大缩放距离
-  controls.maxPolarAngle = Math.PI / 2; // 限制垂直旋转角度
-
-  // 5. 添加灯光（没有灯光模型会显示为全黑）
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // 环境光
+  // 环境光
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // 平行光
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
-};
+  // 2. 主光源 - 模拟太阳光
+  const mainLight = new THREE.DirectionalLight(0xffffff, 2);
+  mainLight.position.set(0, 10, 0);
+  mainLight.castShadow = true;
+  // 调整阴影相机参数
+  mainLight.shadow.camera.left = -10;
+  mainLight.shadow.camera.right = 10;
+  mainLight.shadow.camera.top = 10;
+  mainLight.shadow.camera.bottom = -10;
+  mainLight.shadow.camera.near = 0.1;
+  mainLight.shadow.camera.far = 40;
+  // 提高阴影质量
+  mainLight.shadow.mapSize.width = 2048;
+  mainLight.shadow.mapSize.height = 2048;
+  mainLight.shadow.radius = 3;
+  scene.add(mainLight);
 
-// 加载 GLB 模型
-const loadModel = async () => {
-  loader = new GLTFLoader();
-  
-  try {
-    // 加载模型文件
-    const gltf = await loader.loadAsync('/src/assets/models/su7/source/SU7.glb');
-    
-    // 获取模型对象
-    carModel = gltf.scene;
-    
-    // 调整模型属性
-    carModel.scale.set(1, 1, 1); // 缩放模型
-    carModel.position.y = -0.5; // 调整Y轴位置
-    carModel.rotation.y = Math.PI; // 旋转180度（车头朝向）
-    
-    scene.add(carModel); // 将模型添加到场景
-  } catch (error) {
-    console.error('模型加载失败:', error);
-  }
-};
+  // 3. 补光 - 增加车身细节
+  const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+  fillLight.position.set(-5, 5, -5);
+  scene.add(fillLight);
+
+  // 4. 底部柔光 - 增加车底细节
+  const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  bottomLight.position.set(0, -5, 0);
+  scene.add(bottomLight);
+
+  // scene.add(directionalLight);
+  // // 添加方向光辅助器
+  // const helper = new THREE.DirectionalLightHelper( directionalLight, 5 );
+  // scene.add( helper );
+
+
+  // 创建地面
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(50, 50),
+    new THREE.MeshStandardMaterial({ 
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0
+    })
+  )
+  ground.rotation.x = -Math.PI / 2
+  ground.position.y = -0.5;
+  ground.receiveShadow = true; // 使地面接收阴影
+  scene.add(ground);
+
+
+  // 轨道控制器
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.05;
+  // 设置视角限制
+  controls.minDistance = 5;  // 最小缩放距离
+  controls.maxDistance = 20; // 最大缩放距离
+  // 垂直旋转角度限制
+  controls.minPolarAngle = Math.PI / 4;  // 最小仰角 (45度)
+  controls.maxPolarAngle = Math.PI / 2;  // 最大仰角 (90度)
+
+// 禁用平移
+controls.enablePan = false;
+
+// 设置目标点稍微抬高，使旋转中心更合理
+controls.target.set(0, 1, 0);
+}
+
+// 加载模型
+const loadModel = () => {
+  const gltfLoader = new GLTFLoader()
+  gltfLoader.load("/src/assets/models/su7.glb", (gltf) => {
+    const carModel = gltf.scene
+    console.log(carModel)
+    // carModel.traverse((child) => {
+    //   console.log(child)
+    //   if(child.name === 'OUTSIDE_6') {
+    //     child.children[0].material.color.set(0xe02020)
+    //   }
+    // })
+    // carModel.rotation.y = Math.PI
+    carModel.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        // child.receiveShadow = true;
+      }
+      // 优化材质
+        if(child.material) {
+          // 增强金属感
+          child.material.metalness = 0.4;
+          child.material.roughness = 0.1;
+          // 调整反射
+          child.material.envMapIntensity = 1.5;
+          child.material.needsUpdate = true;
+        }
+    });
+    carModel.scale.set(3, 3, 3)
+    // carModel.position.set(0, 0, 0); // 设置模型位置
+    scene.add(carModel)
+  })
+}
 
 // 动画循环（持续渲染）
 const animate = () => {
-  requestAnimationFrame(animate); // 循环调用自身
+  requestAnimationFrame( animate );
+  controls.update();
+  renderer.render( scene, camera );
+}
 
-  // 更新控制器
-  controls?.update();
-  
-  // 如果需要旋转模型，可以在这里添加代码：
-  // if (carModel) carModel.rotation.y += 0.01;
-  
-  renderer.render(scene, camera); // 执行渲染
-};
-
-// 组件挂载时初始化
 onMounted(() => {
-  initScene();
-  loadModel();
-  animate();
+  containerWidth.value = threeContainer.value.clientWidth;
+  containerHeight.value = threeContainer.value.clientHeight;
+  initScene()
+  loadModel()
+  animate()
 })
-
-// 组件卸载时清理资源
-onBeforeUnmount(() => {
-  // 移除事件监听器
-  window.removeEventListener('resize', onWindowResize);
-  
-  // 清理 Three.js 对象
-  scene?.traverse((obj) => {
-    if (obj.isMesh) {
-      obj.geometry.dispose(); // 释放几何体
-      obj.material.dispose(); // 释放材质
-    }
-  });
-  controls?.dispose(); // 释放控制器
-  renderer?.dispose(); // 释放渲染器
-});
 </script>
 
 <template>
-  <div>
-    <!-- 用于挂载 Three.js 画布的容器 -->
-    <div ref="threeContainer" class="three-container"></div>
-  </div>
+  <div ref="threeContainer" class="three-container"></div>
 </template>
 
 <style scoped>
