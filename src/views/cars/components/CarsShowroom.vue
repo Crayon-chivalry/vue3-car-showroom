@@ -10,7 +10,7 @@ const threeContainer = ref(null)
 const containerWidth = ref(0)
 const containerHeight = ref(0)
 
-let scene, camera, renderer, controls;
+let scene, camera, renderer, controls, carModel;
 
 // 初始化 Three.js 场景
 const initScene = () => {
@@ -72,15 +72,8 @@ const initScene = () => {
 const loadModel = () => {
   const gltfLoader = new GLTFLoader()
   gltfLoader.load("/src/assets/models/su7.glb", (gltf) => {
-    const carModel = gltf.scene
+    carModel = gltf.scene
     console.log(carModel)
-    // carModel.traverse((child) => {
-    //   console.log(child)
-    //   if(child.name === 'OUTSIDE_6') {
-    //     child.children[0].material.color.set(0xe02020)
-    //   }
-    // })
-    // carModel.rotation.y = Math.PI
     carModel.traverse((child) => {
       // 优化材质
       if(child.material) {
@@ -99,6 +92,16 @@ const loadModel = () => {
   })
 }
 
+// 修改汽车模型外部颜色 
+const setCarModelOutsideColor = (color)  => {
+  const threeColor = new THREE.Color(color)
+  carModel.traverse((child) => {
+    if(child.name === 'OUTSIDE_6') {
+      child.children[0].material.color = threeColor
+    }
+  })
+}
+
 // 动画循环（持续渲染）
 const animate = () => {
   requestAnimationFrame( animate );
@@ -113,6 +116,10 @@ onMounted(() => {
   loadModel()
   animate()
 })
+
+defineExpose({
+  setCarModelOutsideColor
+})
 </script>
 
 <template>
@@ -123,5 +130,6 @@ onMounted(() => {
 .three-container {
   width: 100%;
   height: 400px;
+  cursor: move;
 }
 </style>

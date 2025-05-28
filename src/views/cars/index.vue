@@ -4,6 +4,7 @@ import * as echarts from 'echarts'
 
 import CarsList from './components/carsList.vue'
 import CarsShowroom from './components/CarsShowroom.vue'
+import CarsToolBar from './components/CarsToolBar.vue'
 
 const chartRef = ref(null)
 let chartInstance = null
@@ -17,6 +18,8 @@ const radarNameList = [
   { name: '动力', max: 5},
 ]
 const radarValueList = [4.2, 3.5, 2.8, 3.9, 4.3, 4.1, 4.5]
+
+const carsShowroomRef = ref(null)
 
 const initEcharts = () => {
   chartInstance = echarts.init(chartRef.value);
@@ -65,6 +68,10 @@ const initEcharts = () => {
   chartInstance.setOption(option)
 }
 
+const colorChange = (color) => {
+  carsShowroomRef.value.setCarModelOutsideColor(color)
+}
+
 onMounted(() => {
   initEcharts()
 })
@@ -75,10 +82,10 @@ onMounted(() => {
     <!-- 汽车顶部信息 -->
     <div class="cars-header">
       <div>
-        <div class="name">Mercedes-AMG S-Class</div>
-        <div class="price">$96,000</div>
+        <div class="name">小米SU7</div>
+        <div class="price">21.59-29.99万</div>
       </div>
-      <img src="@/assets/image/brand/Mercedes-Benz.png" class="cars-logo" />
+      <img src="@/assets/image/brand/Xiaomi.png" class="cars-logo" />
     </div>
     <div class="cars-content">
       <!-- 汽车评分 -->
@@ -89,25 +96,26 @@ onMounted(() => {
        </div>
       <!-- 汽车模型/展示 -->
       <div class="cars-model">
-        <cars-showroom />
+        <cars-showroom ref="carsShowroomRef" />
+        <cars-tool-bar @colorChange="colorChange" />
       </div>
       <!-- 基本信息 -->
       <div class="cars-info">
         <div class="cars-info-item">
-          <div class="info-title">Top Speed</div>
-          <div class="info-value">212</div>
+          <div class="info-title">最高时速</div>
+          <div class="info-value">210Km/h</div>
         </div>
         <div class="cars-info-item">
-          <div class="info-title">Max Power</div>
-          <div class="info-value">212</div>
+          <div class="info-title">驱动方式</div>
+          <div class="info-value">后驱</div>
         </div>
         <div class="cars-info-item">
-          <div class="info-title">Engine</div>
-          <div class="info-value">212</div>
+          <div class="info-title">续航</div>
+          <div class="info-value">700km</div>
         </div>
         <div class="cars-info-item">
-          <div class="info-title">0 - 60 MPH</div>
-          <div class="info-value">212</div>
+          <div class="info-title">百公里加速</div>
+          <div class="info-value">5.28s</div>
         </div>
         <div class="details-btn">详情</div>
       </div>
