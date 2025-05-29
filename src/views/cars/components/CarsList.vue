@@ -44,7 +44,7 @@ const getImageUrl = (name) => {
 
 <style scoped>
 .cars-list {
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .cars-item {

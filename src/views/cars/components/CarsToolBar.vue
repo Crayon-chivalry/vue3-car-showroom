@@ -9,7 +9,7 @@ const colorList = [
   {id: 3, name: '橄榄绿', color: '#717A60'},
   {id: 4, name: '熔岩橙', color: '#FE5F20'},
   {id: 5, name: '珍珠白', color: '#F5F5F5'},
-  {id: 6, name: '钻石黑', color: '#000000'},
+  {id: 6, name: '霞光紫', color: '#685377'},
 ]
 
 const colorActive = ref(1)

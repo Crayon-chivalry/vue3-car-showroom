@@ -92,6 +92,13 @@ const loadModel = () => {
   })
 }
 
+// 动画循环（持续渲染）
+const animate = () => {
+  requestAnimationFrame( animate );
+  controls.update();
+  renderer.render( scene, camera );
+}
+
 // 修改汽车模型外部颜色 
 const setCarModelOutsideColor = (color)  => {
   const threeColor = new THREE.Color(color)
@@ -102,11 +109,20 @@ const setCarModelOutsideColor = (color)  => {
   })
 }
 
-// 动画循环（持续渲染）
-const animate = () => {
-  requestAnimationFrame( animate );
-  controls.update();
-  renderer.render( scene, camera );
+// 处理窗口大小变化
+const onResize = () => {
+  console.log('111')
+  if (camera && renderer && threeContainer.value) {
+    // 更新相机宽高比
+    const width = threeContainer.value.clientWidth
+    const height = threeContainer.value.clientHeight
+    console.log(width)
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+    
+    // 更新渲染器大小
+    renderer.setSize(width, height)
+  }
 }
 
 onMounted(() => {
@@ -118,7 +134,8 @@ onMounted(() => {
 })
 
 defineExpose({
-  setCarModelOutsideColor
+  setCarModelOutsideColor,
+  onResize
 })
 </script>
 
@@ -129,7 +146,7 @@ defineExpose({
 <style scoped>
 .three-container {
   width: 100%;
-  height: 400px;
+  height: 500px;
   cursor: move;
 }
 </style>

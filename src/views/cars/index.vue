@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 
 import CarsList from './components/carsList.vue'
@@ -21,6 +21,7 @@ const radarValueList = [4.2, 3.5, 2.8, 3.9, 4.3, 4.1, 4.5]
 
 const carsShowroomRef = ref(null)
 
+// 雷达图
 const initEcharts = () => {
   chartInstance = echarts.init(chartRef.value);
   const option = {
@@ -68,12 +69,29 @@ const initEcharts = () => {
   chartInstance.setOption(option)
 }
 
+// 设置模型外部颜色
 const colorChange = (color) => {
   carsShowroomRef.value.setCarModelOutsideColor(color)
 }
 
+// 处理窗口大小变化
+const handleResize = () => {
+  if (chartInstance) {
+    chartInstance.resize()
+  }
+  if (carsShowroomRef.value) {
+    // 调用3D组件的更新方法
+    carsShowroomRef.value.onResize()
+  }
+}
+
 onMounted(() => {
   initEcharts()
+  // window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -162,8 +180,8 @@ onMounted(() => {
 }
 
 .radar-chart {
-  width: 300px;
-  height: 300px;
+  width: 350px;
+  height: 350px;
 }
 
 .cars-content-left .btn {
