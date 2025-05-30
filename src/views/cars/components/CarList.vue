@@ -1,13 +1,15 @@
 <script setup>
+import { watch, ref } from 'vue'
 import 'vue3-carousel/carousel.css'
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
+import { isMobile } from '@/utils/remAdaptor'
 
-const carouselConfig = {
-  itemsToShow: 5,
-  gap: 20,
+const carouselConfig = ref({
+  itemsToShow: isMobile.value ? 3 : 5,
+  gap: isMobile ? 10 : 20,
   wrapAround: true,
   mouseWheel: true
-}
+})
 
 const list = [
   {name: '小米su7', image: 'xiaomi-su7'},
@@ -22,6 +24,11 @@ const list = [
 const getImageUrl = (name) => {
   return new URL(`/src/assets/image/cars/${name}.png`, import.meta.url).href
 }
+
+watch(isMobile ,() => {
+  carouselConfig.value.itemsToShow = isMobile.value ? 3 : 5
+  carouselConfig.value.gap = isMobile.value ? 10 : 20
+})
 </script>
 
 <template>
@@ -30,7 +37,7 @@ const getImageUrl = (name) => {
       <Slide v-for="(item, index) in list" :key="index">
         <div class="cars-item">
           <img :src="getImageUrl(item.image)" class="cars-cover" />
-          <div class="cars-name">{{ item.name }}</div>
+          <div class="cars-name">{{ item.name }} {{ isMobile }}</div>
         </div>
       </Slide>
 
@@ -48,8 +55,11 @@ const getImageUrl = (name) => {
 }
 
 .cars-item {
-  padding: 25px 0;
+  padding: 30px 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: rgba(17, 23, 31, 0.4);
   backdrop-filter: blur(24px);
   text-align: center;
@@ -66,6 +76,7 @@ const getImageUrl = (name) => {
 .cars-name {
   margin-top: 10px;
   color: #fff;
+  font-size: 16px;
 }
 
 .carousel {

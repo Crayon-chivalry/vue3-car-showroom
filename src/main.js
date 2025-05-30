@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
+import 'normalize.css';
 import App from './App.vue'
 import router from './router'
-import 'normalize.css';
+import './utils/remAdaptor.js'
 
 const app = createApp(App)
 

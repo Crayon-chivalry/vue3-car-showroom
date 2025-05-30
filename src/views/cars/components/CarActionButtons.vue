@@ -28,7 +28,7 @@ const colorClick = (item) => {
 </script>
 
 <template>
-  <div class="tool-bar">
+  <div class="action-buttons">
     <div class="color-list">
       <div 
         class="color-item" 
@@ -48,7 +48,7 @@ const colorClick = (item) => {
 </template>
 
 <style scoped>
-.tool-bar {
+.action-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,7 +93,7 @@ const colorClick = (item) => {
   color: #fff;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .link-item:hover {
@@ -102,5 +102,20 @@ const colorClick = (item) => {
 
 .link-image {
   width: 20px;
+}
+
+@media (max-width: 768px) {
+  .action-buttons {
+    display: block;
+  }
+
+  .color-list {
+    justify-content: center;
+  }
+
+  .link {
+    margin-top: 20px;
+    justify-content: center;
+  }
 }
 </style>

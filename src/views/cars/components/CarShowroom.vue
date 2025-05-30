@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { isMobile } from '@/utils/remAdaptor'
 
 const threeContainer = ref(null)
 
@@ -73,7 +74,6 @@ const loadModel = () => {
   const gltfLoader = new GLTFLoader()
   gltfLoader.load("/src/assets/models/su7.glb", (gltf) => {
     carModel = gltf.scene
-    console.log(carModel)
     carModel.traverse((child) => {
       // 优化材质
       if(child.material) {
@@ -85,7 +85,12 @@ const loadModel = () => {
         child.material.needsUpdate = true;
       }
     });
-    carModel.scale.set(4, 4, 4)
+    // 根据设备不同进行缩放
+    if(isMobile.value) {
+      carModel.scale.set(2.2, 2.2, 2.2)
+    } else {
+      carModel.scale.set(4, 4, 4)
+    }
     carModel.position.y = -1
     carModel.rotation.y = Math.PI * 1.5; // 旋转模型使其朝向正确方向
     scene.add(carModel)
@@ -111,12 +116,10 @@ const setCarModelOutsideColor = (color)  => {
 
 // 处理窗口大小变化
 const onResize = () => {
-  console.log('111')
   if (camera && renderer && threeContainer.value) {
     // 更新相机宽高比
     const width = threeContainer.value.clientWidth
     const height = threeContainer.value.clientHeight
-    console.log(width)
     camera.aspect = width / height
     camera.updateProjectionMatrix()
     
@@ -145,8 +148,14 @@ defineExpose({
 
 <style scoped>
 .three-container {
-  width: 100%;
+  width: 1300px;
   height: 500px;
   cursor: move;
+}
+
+@media (max-width: 768px) {
+  .three-container {
+    width: 100%;
+  }
 }
 </style>
